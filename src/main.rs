@@ -46,6 +46,10 @@ impl Emulator {
             *reg_value = new_value;
         });
     }
+
+    fn load_bin(&mut self, binary: Vec<u8>) {
+        self.memory = binary;
+    }
 }
 
 struct Config {
@@ -80,7 +84,12 @@ fn main() {
         process::exit(1);
     });
 
-    let file = fs::read(fp.get_fp()).unwrap();
+    let bin = fs::read(fp.get_fp()).unwrap_or_else(|err| {
+        eprintln!("Could not load binary: {err}");
+        process::exit(1);
+    });
+    emu.load_bin(bin);
+    println!("{:?}", emu.memory);
 }
 
 #[cfg(test)]
