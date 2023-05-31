@@ -36,6 +36,14 @@ impl Emulator {
 }
 
 fn main() {
-    let mut emulator = Emulator::new(0x3, 0x1111, 0xffff);
-    println!("{:?}", emulator);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn print_emulator() {
+        let emulator = Emulator::new(0x3, 0x1111, 0xffff);
+        println!("{:?}", emulator);
+    }
 }
