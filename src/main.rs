@@ -110,6 +110,7 @@ impl Emulator {
     fn run(&mut self, mem_size: u32, instructions: InstructionVector) {
         while self.eip < mem_size {
             let code = self.get_code8(0);
+            println!("eip: 0x{:x}, code: 0x{:x}", self.eip, code);
             match instructions.0[code as usize] {
                 Some(instruction) =>  instruction(self),
                 _ => panic!("Not implemented: code {code}")     // TODO: error propagation
