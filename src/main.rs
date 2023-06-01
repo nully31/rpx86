@@ -34,7 +34,7 @@ fn main() {
 mod tests {
     use super::*;
     #[test]
-    fn emulate() {
+    fn main_test() {
         let mut emu = Emulator::new(0xff, 0x0000, 0x7c00);
     
         emu.load_bin(fs::read("helloworld.bin").unwrap_or_else(|err| {
