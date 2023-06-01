@@ -22,8 +22,8 @@ pub struct SPR {
 }
 
 use std::collections::HashMap;
+use std::fmt;
 
-#[derive(Debug)]
 pub struct Emulator {
     reg_file: HashMap<GPR, u32>,
     sp_reg: SPR,
@@ -127,16 +127,16 @@ impl Emulator {
     pub fn get_code32(&self, index: usize) -> u32 {
         let mut ret: u32 = 0x0;
         // convert little endian to the correct byte order
-        for i in (0..4).rev() {
-            ret |= self.get_code8(i + index) as u32 >> (i * 8);
+        for i in 0..4 {
+            ret |= (self.get_code8(i + index) as u32) << (i * 8);
         }
         ret
     }
 
     pub fn get_signed_code32(&self, index: usize) -> i32 {
         let mut ret: i32 = 0x0;
-        for i in (0..4).rev() {
-            ret |= self.get_code8(i + index) as i32 >> (i * 8);
+        for i in 0..4 {
+            ret |= (self.get_code8(i + index) as i32) << (i * 8);
         }
         ret
     }
@@ -158,6 +158,15 @@ impl Emulator {
 
     pub fn dump(&self) {
         println!("{:#x?}", self);
+    }
+}
+
+impl fmt::Debug for Emulator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Emulator")
+            .field("reg_file", &self.reg_file)
+            .field("sp_reg", &self.sp_reg)
+            .finish()
     }
 }
 
