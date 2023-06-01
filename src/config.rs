@@ -29,7 +29,7 @@ mod tests {
     fn build_test() {
         let args = vec!["0".to_string()];
         let config = Config::build(&args);
-        assert_eq!(config.unwrap_err(), "not enough arguments");
+        assert_eq!(config.unwrap_err(), "not enough arguments, please specify the path to a binary file.");
 
         let args = vec!["0".to_string(), "helloworld.bin".to_string()];
         let config = Config::build(&args);
