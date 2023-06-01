@@ -115,16 +115,17 @@ impl Emulator {
         self.sp_reg.eflags = new_value;
     }
 
-    pub fn load_bin(&mut self, binary: Vec<u8>) {
-        self.memory = binary;
+    pub fn load_bin(&mut self, binary: Vec<u8>, address: u32) {
+        let end_index = address as usize + binary.len();
+        self.memory.splice(address as usize..end_index, binary);
     }
 
-    pub fn get_code8(&self, index: usize) -> u32 {
-        self.memory[self.sp_reg.eip as usize + index] as u32
+    pub fn get_code8(&self, index: usize) -> u8 {
+        self.memory[self.sp_reg.eip as usize + index] as u8
     }
 
-    pub fn get_signed_code8(&self, index: usize) -> i32 {
-        self.memory[self.sp_reg.eip as usize + index] as i32
+    pub fn get_signed_code8(&self, index: usize) -> i8 {
+        self.memory[self.sp_reg.eip as usize + index] as i8
     }
 
     pub fn get_code32(&self, index: usize) -> u32 {
@@ -132,6 +133,14 @@ impl Emulator {
         // convert little endian to the correct byte order
         for i in (0..4).rev() {
             ret |= self.get_code8(i + index) as u32 >> (i * 8);
+        }
+        ret
+    }
+
+    pub fn get_signed_code32(&self, index: usize) -> i32 {
+        let mut ret: i32 = 0x0;
+        for i in (0..4).rev() {
+            ret |= self.get_code8(i + index) as i32 >> (i * 8);
         }
         ret
     }
