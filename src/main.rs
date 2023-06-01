@@ -83,14 +83,26 @@ impl Emulator {
         }
     }
 
+    fn get_register(&self, reg: &GPR) -> Option<&u32> {
+        self.reg_file.get(reg)
+    }
+    
     fn set_register(&mut self, reg: GPR, new_value: u32) {
         self.reg_file.entry(reg).and_modify(|reg_value| {
             *reg_value = new_value;
         });
     }
 
+    fn get_eip(&self) -> u32 {
+        self.sp_reg.eip
+    }
+
     fn set_eip(&mut self, new_value: u32) {
         self.sp_reg.eip = new_value;
+    }
+
+    fn get_eflags(&self) -> u32 {
+        self.sp_reg.eflags
     }
 
     fn load_bin(&mut self, binary: Vec<u8>) {
@@ -186,12 +198,12 @@ fn mov_r32_imm32(emu: &mut Emulator) {
     let value = emu.get_code32(1);
     let reg = emu.get_register_id(reg).unwrap();  // TODO: error propagation
     emu.set_register(reg, value);
-    emu.set_eip(emu.sp_reg.eip + 5);
+    emu.set_eip(emu.get_eip() + 5);
 }
 
 fn short_jump(emu: &mut Emulator) {
     let diff = emu.get_signed_code8(1) as i8;
-    emu.set_eip((emu.sp_reg.eip as i32 + diff as i32 + 2) as u32);
+    emu.set_eip((emu.get_eip() as i32 + diff as i32 + 2) as u32);
 }
 
 
@@ -228,7 +240,7 @@ mod tests {
         let mut emu = Emulator::new(0x3, 0x1111, 0xffff);
         println!("{:?}", emu);
         assert_eq!(emu.memory.len(), 3);
-        assert_eq!(emu.sp_reg.eip, 0x1111);
+        assert_eq!(emu.get_eip(), 0x1111);
         assert_eq!(emu.reg_file.get(&GPR::ESP), Some(&0xffff));
 
         emu.set_register(GPR::EAX, 0xff);
