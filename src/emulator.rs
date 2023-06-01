@@ -3,6 +3,10 @@
 //
 use crate::instruction::InstructionVector;
 
+pub trait Register {
+    fn check_register(&self);
+}
+
 #[derive(Hash, Eq, PartialEq, Debug)]
 pub enum GPR {
     EAX = 0,
@@ -53,7 +57,7 @@ impl Emulator {
         Self { reg_file, sp_reg, memory }
     }
 
-    pub fn get_register_id(&self, reg: u32) -> Option<GPR> {
+    pub fn get_gpr_id(&self, reg: u32) -> Option<GPR> {
         match reg {
             v if v == GPR::EAX as u32 => {
                 Some(GPR::EAX)
@@ -85,11 +89,11 @@ impl Emulator {
         }
     }
 
-    pub fn get_register(&self, reg: &GPR) -> Option<&u32> {
+    pub fn get_gpr_value(&self, reg: &GPR) -> Option<&u32> {
         self.reg_file.get(reg)
     }
 
-    pub fn set_register(&mut self, reg: GPR, new_value: u32) {
+    pub fn set_gpr(&mut self, reg: GPR, new_value: u32) {
         self.reg_file.entry(reg).and_modify(|reg_value| {
             *reg_value = new_value;
         });
@@ -105,6 +109,10 @@ impl Emulator {
 
     pub fn get_eflags(&self) -> u32 {
         self.sp_reg.eflags
+    }
+
+    pub fn set_eflags(&mut self, new_value: u32) {
+        self.sp_reg.eflags = new_value;
     }
 
     pub fn load_bin(&mut self, binary: Vec<u8>) {
@@ -153,14 +161,14 @@ impl Emulator {
 mod tests {
     use super::*;
     #[test]
-    fn print_emulator() {
+    fn test_emulator() {
         let mut emu = Emulator::new(0x3, 0x1111, 0xffff);
         println!("{:?}", emu);
         assert_eq!(emu.memory.len(), 3);
         assert_eq!(emu.get_eip(), 0x1111);
         assert_eq!(emu.reg_file.get(&GPR::ESP), Some(&0xffff));
 
-        emu.set_register(GPR::EAX, 0xff);
+        emu.set_gpr(GPR::EAX, 0xff);
         println!("{:?}", emu);
         assert_eq!(emu.reg_file.get(&GPR::EAX), Some(&0xff));
     }

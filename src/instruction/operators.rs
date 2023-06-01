@@ -6,10 +6,10 @@ use super::*;
 pub fn mov_r32_imm32(emu: &mut Emulator) {
     let reg = emu.get_code8(0) - 0xB8;
     let value = emu.get_code32(1);
-    let reg = emu.get_register_id(reg).unwrap_or_else(|| {
+    let reg = emu.get_gpr_id(reg).unwrap_or_else(|| {
         panic!("Invalid register id");
     });  // TODO: implement better error handling
-    emu.set_register(reg, value);
+    emu.set_gpr(reg, value);
     emu.set_eip(emu.get_eip() + 5);
 }
 
