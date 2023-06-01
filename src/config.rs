@@ -28,18 +28,18 @@ mod tests {
     #[test]
     fn build_test() {
         let args = vec!["0".to_string()];
-        let mut config = Config::build(&args);
+        let config = Config::build(&args);
         assert_eq!(config.unwrap_err(), "not enough arguments");
 
         let args = vec!["0".to_string(), "helloworld.bin".to_string()];
-        let mut config = Config::build(&args);
+        let config = Config::build(&args);
         assert_eq!(config.unwrap().file_path, "helloworld.bin");
     }
 
     #[test]
     fn get_fp_test() {
         let args = vec!["0".to_string(), "helloworld.bin".to_string()];
-        let mut config = Config::build(&args);
+        let config = Config::build(&args);
         assert_eq!(config.unwrap().get_fp(), "helloworld.bin");
     }
 }
