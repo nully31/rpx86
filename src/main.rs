@@ -86,7 +86,7 @@ impl Emulator {
     fn get_register(&self, reg: &GPR) -> Option<&u32> {
         self.reg_file.get(reg)
     }
-    
+
     fn set_register(&mut self, reg: GPR, new_value: u32) {
         self.reg_file.entry(reg).and_modify(|reg_value| {
             *reg_value = new_value;
@@ -196,7 +196,9 @@ impl InstructionVector {
 fn mov_r32_imm32(emu: &mut Emulator) {
     let reg = emu.get_code8(0) - 0xB8;
     let value = emu.get_code32(1);
-    let reg = emu.get_register_id(reg).unwrap();  // TODO: error propagation
+    let reg = emu.get_register_id(reg).unwrap_or_else(|| {
+        panic!("Invalid register id");
+    });  // TODO: implement better error handling
     emu.set_register(reg, value);
     emu.set_eip(emu.get_eip() + 5);
 }
