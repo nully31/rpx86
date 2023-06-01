@@ -128,8 +128,8 @@ impl Emulator {
         ret
     }
 
-    pub fn run(&mut self, mem_size: u32, instructions: InstructionVector) {
-        while self.sp_reg.eip < mem_size {
+    pub fn run(&mut self, instructions: InstructionVector) {
+        while self.sp_reg.eip < self.memory.len() as u32 {
             let code = self.get_code8(0);
             println!("eip: 0x{:x}, code: 0x{:x}", self.sp_reg.eip, code);
             match instructions.0[code as usize] {
