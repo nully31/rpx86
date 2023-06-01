@@ -3,10 +3,6 @@
 //
 use crate::instruction::InstructionVector;
 
-pub trait Register {
-    fn check_register(&self);
-}
-
 #[derive(Hash, Eq, PartialEq, Debug)]
 pub enum GPR {
     EAX = 0,
