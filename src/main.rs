@@ -44,7 +44,7 @@ mod tests {
         emu.load_bin(fs::read("helloworld.bin").unwrap_or_else(|err| {
             eprintln!("Could not load binary: {err}");
             process::exit(1);
-        }), ORG);
+        }), 0x0000);
     
         let instructions = InstructionVector::new(INST_SIZE);
         emu.run(instructions);
