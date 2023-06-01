@@ -26,6 +26,25 @@ fn main() {
     }));
 
     let instructions = InstructionVector::new(0xff);
-    emu.run(0xffff, instructions);
+    emu.run(instructions);
     emu.dump();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn emulate() {
+        let mut emu = Emulator::new(0xff, 0x0000, 0x7c00);
+    
+        emu.load_bin(fs::read("helloworld.bin").unwrap_or_else(|err| {
+            eprintln!("Could not load binary: {err}");
+            process::exit(1);
+        }));
+    
+        let instructions = InstructionVector::new(0xff);
+        emu.run(instructions);
+        // emu.dump();
+        assert_eq!(*emu.get_gpr_value(&emulator::GPR::EAX).unwrap(), 41);
+    }
 }
