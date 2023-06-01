@@ -2,73 +2,80 @@
 // Emulator stuff
 //
 #[derive(Hash, Eq, PartialEq, Debug)]
-enum Register {
-    EAX,
-    ECX,
-    EDX,
-    EBX,
-    ESP,
-    EBP,
-    ESI,
-    EDI,
+enum GPR {
+    EAX = 0,
+    ECX = 1,
+    EDX = 2,
+    EBX = 3,
+    ESP = 4,
+    EBP = 5,
+    ESI = 6,
+    EDI = 7,
+}
+
+#[derive(Hash, Eq, PartialEq, Debug)]
+struct SPR {
+    eflags: u32,
+    eip: u32,
 }
 
 use std::collections::HashMap;
 
 #[derive(Debug)]
 struct Emulator {
-    registers: HashMap<Register, u32>,
-    eflags: u32,
+    reg_file: HashMap<GPR, u32>,
+    sp_reg: SPR,
     memory: Vec<u8>,
-    eip: u32,
 }
 
 impl Emulator {
     fn new(size: usize, eip_value: u32, esp_value: u32) -> Self {
         assert!(size > 0);
 
-        let registers: HashMap<Register, u32> = HashMap::from([
-            (Register::EAX, 0x0),
-            (Register::EBX, 0x0),
-            (Register::ECX, 0x0),
-            (Register::EDX, 0x0),
-            (Register::ESI, 0x0),
-            (Register::EDI, 0x0),
-            (Register::ESP, esp_value),
-            (Register::EBP, 0x0),
+        let reg_file = HashMap::from([
+            (GPR::EAX, 0x0),
+            (GPR::EBX, 0x0),
+            (GPR::ECX, 0x0),
+            (GPR::EDX, 0x0),
+            (GPR::ESI, 0x0),
+            (GPR::EDI, 0x0),
+            (GPR::ESP, esp_value),
+            (GPR::EBP, 0x0),
         ]);
+        let sp_reg = SPR {
+            eflags: 0x0,
+            eip: eip_value,
+        };
         let memory = vec![0; size];
-        let eip = eip_value;
-        let eflags = 0x0;
 
-        Self { registers, eflags, memory, eip }
+        Self { reg_file, sp_reg, memory }
     }
 
-    fn get_register_id(&self, reg: u32) -> Option<Register> {
+    fn get_register_id(&self, reg: u32) -> Option<GPR> {
         match reg {
-            v if v == Register::EAX as u32 => {
-                Some(Register::EAX)
+            v if v == GPR::EAX as u32 => {
+                Some(GPR::EAX)
             }
-            v if v == Register::ECX as u32 => {
-                Some(Register::ECX)
+            v if v == GPR::ECX as u32 => {
+                Some(GPR::ECX)
             }
-            v if v == Register::EDX as u32 => {
-                Some(Register::EDX)
+            v if v == GPR::EDX as u32 => {
+                Some(GPR::EDX)
             }
-            v if v == Register::EBX as u32 => {
-                Some(Register::EBX)
+            v if v == GPR::EBX as u32 => {
+                Some(GPR::EBX)
             }
-            v if v == Register::ESP as u32 => {
-                Some(Register::ESP)
+            v if v == GPR::ESP as u32 => {
+                Some(GPR::ESP)
             }
-            v if v == Register::EBP as u32 => {
-                Some(Register::EBP)
+            v if v == GPR::EBP as u32 => {
+                Some(GPR::EBP)
             }
-            v if v == Register::ESI as u32 => {
-                Some(Register::ESI)
+            v if v == GPR::ESI as u32 => {
+                Some(GPR::ESI)
             }
-            v if v == Register::EDI as u32 => {
-                Some(Register::EDI)
+            v if v == GPR::EDI as u32 => {
+                Some(GPR::EDI)
             }
             _ => {
                 None
@@ -76,14 +83,14 @@ impl Emulator {
         }
     }
 
-    fn set_register(&mut self, reg: Register, new_value: u32) {
-        self.registers.entry(reg).and_modify(|reg_value| {
+    fn set_register(&mut self, reg: GPR, new_value: u32) {
+        self.reg_file.entry(reg).and_modify(|reg_value| {
             *reg_value = new_value;
         });
     }
 
     fn set_eip(&mut self, new_value: u32) {
-        self.eip = new_value;
+        self.sp_reg.eip = new_value;
     }
 
     fn load_bin(&mut self, binary: Vec<u8>) {
@@ -91,11 +98,11 @@ impl Emulator {
     }
 
     fn get_code8(&self, index: usize) -> u32 {
-        self.memory[self.eip as usize + index] as u32
+        self.memory[self.sp_reg.eip as usize + index] as u32
     }
 
     fn get_signed_code8(&self, index: usize) -> i32 {
-        self.memory[self.eip as usize + index] as i32
+        self.memory[self.sp_reg.eip as usize + index] as i32
     }
 
     fn get_code32(&self, index: usize) -> u32 {
@@ -108,14 +115,14 @@ impl Emulator {
     }
 
     fn run(&mut self, mem_size: u32, instructions: InstructionVector) {
-        while self.eip < mem_size {
+        while self.sp_reg.eip < mem_size {
             let code = self.get_code8(0);
-            println!("eip: 0x{:x}, code: 0x{:x}", self.eip, code);
+            println!("eip: 0x{:x}, code: 0x{:x}", self.sp_reg.eip, code);
             match instructions.0[code as usize] {
                 Some(instruction) =>  instruction(self),
                 _ => panic!("Not implemented: code {code}")     // TODO: error propagation
             }
-            if self.eip == 0x00 {
+            if self.sp_reg.eip == 0x00 {
                 println!("End of program");
                 break;
             }
@@ -179,12 +186,12 @@ fn mov_r32_imm32(emu: &mut Emulator) {
     let value = emu.get_code32(1);
     let reg = emu.get_register_id(reg).unwrap();  // TODO: error propagation
     emu.set_register(reg, value);
-    emu.eip += 5;
+    emu.set_eip(emu.sp_reg.eip + 5);
 }
 
 fn short_jump(emu: &mut Emulator) {
     let diff = emu.get_signed_code8(1) as i8;
-    emu.set_eip((emu.eip as i32 + diff as i32 + 2) as u32);
+    emu.set_eip((emu.sp_reg.eip as i32 + diff as i32 + 2) as u32);
 }
 
 
@@ -221,11 +228,11 @@ mod tests {
         let mut emu = Emulator::new(0x3, 0x1111, 0xffff);
         println!("{:?}", emu);
         assert_eq!(emu.memory.len(), 3);
-        assert_eq!(emu.eip, 0x1111);
-        assert_eq!(emu.registers.get(&Register::ESP), Some(&0xffff));
+        assert_eq!(emu.sp_reg.eip, 0x1111);
+        assert_eq!(emu.reg_file.get(&GPR::ESP), Some(&0xffff));
 
-        emu.set_register(Register::EAX, 0xff);
+        emu.set_register(GPR::EAX, 0xff);
         println!("{:?}", emu);
-        assert_eq!(emu.registers.get(&Register::EAX), Some(&0xff));
+        assert_eq!(emu.reg_file.get(&GPR::EAX), Some(&0xff));
     }
 }
