@@ -161,7 +161,7 @@ impl Emulator {
 mod tests {
     use super::*;
     #[test]
-    fn test_emulator() {
+    fn emulator_test() {
         let mut emu = Emulator::new(0x3, 0x1111, 0xffff);
         println!("{:?}", emu);
         assert_eq!(emu.memory.len(), 3);
