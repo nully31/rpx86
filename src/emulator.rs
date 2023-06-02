@@ -5,7 +5,7 @@ use crate::instruction::InstructionVector;
 
 pub mod modrm;
 
-#[derive(Hash, Eq, PartialEq, Debug)]
+#[derive(Hash, Eq, PartialEq, Debug, Clone, Copy)]
 pub enum GPR {
     EAX = 0,
     ECX = 1,
@@ -55,31 +55,31 @@ impl Emulator {
         Self { reg_file, sp_reg, memory }
     }
 
-    pub fn get_gpr_id(&self, reg: u32) -> Option<GPR> {
+    pub fn get_gpr_id(&self, reg: u32) -> Option<&GPR> {
         match reg {
             v if v == GPR::EAX as u32 => {
-                Some(GPR::EAX)
+                Some(&GPR::EAX)
             }
             v if v == GPR::ECX as u32 => {
-                Some(GPR::ECX)
+                Some(&GPR::ECX)
             }
             v if v == GPR::EDX as u32 => {
-                Some(GPR::EDX)
+                Some(&GPR::EDX)
             }
             v if v == GPR::EBX as u32 => {
-                Some(GPR::EBX)
+                Some(&GPR::EBX)
             }
             v if v == GPR::ESP as u32 => {
-                Some(GPR::ESP)
+                Some(&GPR::ESP)
             }
             v if v == GPR::EBP as u32 => {
-                Some(GPR::EBP)
+                Some(&GPR::EBP)
             }
             v if v == GPR::ESI as u32 => {
-                Some(GPR::ESI)
+                Some(&GPR::ESI)
             }
             v if v == GPR::EDI as u32 => {
-                Some(GPR::EDI)
+                Some(&GPR::EDI)
             }
             _ => {
                 None
@@ -87,12 +87,12 @@ impl Emulator {
         }
     }
 
-    pub fn get_gpr_value(&self, reg: &GPR) -> Option<&u32> {
-        self.reg_file.get(reg)
+    pub fn get_gpr_value(&self, reg: &GPR) -> &u32 {
+        self.reg_file.get(reg).unwrap()
     }
 
-    pub fn set_gpr(&mut self, reg: GPR, new_value: u32) {
-        self.reg_file.entry(reg).and_modify(|reg_value| {
+    pub fn set_gpr(&mut self, reg: &GPR, new_value: u32) {
+        self.reg_file.entry(*reg).and_modify(|reg_value| {
             *reg_value = new_value;
         });
     }
@@ -101,20 +101,20 @@ impl Emulator {
         self.sp_reg.eip
     }
 
-    pub fn set_eip(&mut self, new_value: u32) {
-        self.sp_reg.eip = new_value;
-    }
-
-    pub fn inc_eip(&mut self, incrementor: u32) {
-        self.sp_reg.eip += incrementor;
-    }
-
     pub fn get_eflags(&self) -> u32 {
         self.sp_reg.eflags
     }
 
     pub fn set_eflags(&mut self, new_value: u32) {
         self.sp_reg.eflags = new_value;
+    }
+
+    pub fn set_eip(&mut self, new_value: u32) {
+        self.sp_reg.eip = new_value;
+    }
+
+    pub fn inc_eip(&mut self, incrementor: u32) {
+        self.sp_reg.eip += incrementor;
     }
 
     pub fn load_bin(&mut self, binary: Vec<u8>, address: u32) {
@@ -145,6 +145,16 @@ impl Emulator {
             ret |= (self.get_code8(i + index) as i32) << (i * 8);
         }
         ret
+    }
+
+    pub fn set_memory8(&mut self, address: u32, value: u32) {
+        self.memory[address as usize] = (value & 0xff) as u8;
+    }
+
+    pub fn set_memory32(&mut self, address: u32, value: u32) {
+        for i in 0..4 {
+            self.set_memory8(address + i, value >> (i * 8));
+        }
     }
 
     pub fn run(&mut self, instructions: InstructionVector) {
@@ -188,7 +198,7 @@ mod tests {
         assert_eq!(emu.get_eip(), 0x1111);
         assert_eq!(emu.reg_file.get(&GPR::ESP), Some(&0xffff));
 
-        emu.set_gpr(GPR::EAX, 0xff);
+        emu.set_gpr(&GPR::EAX, 0xff);
         println!("{:?}", emu);
         assert_eq!(emu.reg_file.get(&GPR::EAX), Some(&0xff));
     }
