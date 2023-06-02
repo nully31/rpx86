@@ -2,9 +2,9 @@
 // Instruction table setup
 //
 use crate::emulator::Emulator;
-use crate::instruction::operators::*;
+use crate::instruction::operation::*;
 
-pub mod operators;
+pub mod operation;
 
 type InstructionPtr = fn(&mut Emulator);
 
