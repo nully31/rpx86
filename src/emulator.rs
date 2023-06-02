@@ -147,7 +147,7 @@ impl Emulator {
             println!("eip: 0x{:x}, code: 0x{:x}", self.sp_reg.eip, code);
             match instructions.0[code as usize] {
                 Some(instruction) =>  instruction(self),
-                _ => panic!("Not implemented: code {code}")     // TODO: error propagation
+                _ => panic!("Not implemented: code 0x{:x}", code)     // TODO: error propagation
             }
             if self.sp_reg.eip == 0x00 {
                 println!("End of program");
