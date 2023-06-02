@@ -3,6 +3,8 @@
 //
 use crate::instruction::InstructionVector;
 
+pub mod modrm;
+
 #[derive(Hash, Eq, PartialEq, Debug)]
 pub enum GPR {
     EAX = 0,
@@ -101,6 +103,10 @@ impl Emulator {
 
     pub fn set_eip(&mut self, new_value: u32) {
         self.sp_reg.eip = new_value;
+    }
+
+    pub fn inc_eip(&mut self, incrementor: u32) {
+        self.sp_reg.eip += incrementor;
     }
 
     pub fn get_eflags(&self) -> u32 {
