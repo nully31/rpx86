@@ -81,7 +81,7 @@ pub fn inc_rm32(emu: &mut Emulator, modrm: &ModRM) {
 
 pub fn code_ff(emu: &mut Emulator) {
     emu.inc_eip(1);
-    let mut modrm = ModRM::new(emu);
+    let modrm = ModRM::new(emu);
 
     match modrm.get_opcode() {
         0b000 => inc_rm32(emu, &modrm),
