@@ -196,6 +196,7 @@ impl fmt::Debug for Emulator {
         f.debug_struct("Emulator")
             .field("reg_file", &self.reg_file)
             .field("sp_reg", &self.sp_reg)
+            //.field("memory", &self.memory)
             .finish()
     }
 }
