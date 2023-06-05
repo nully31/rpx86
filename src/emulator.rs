@@ -5,7 +5,7 @@ use crate::instruction::InstructionVector;
 
 pub mod modrm;
 
-#[derive(Hash, Eq, PartialEq, Debug, Clone, Copy)]
+#[derive(Ord, PartialOrd, Eq, PartialEq, Debug, Clone, Copy)]
 pub enum GPR {
     EAX = 0,
     ECX = 1,
@@ -17,17 +17,17 @@ pub enum GPR {
     EDI = 7,
 }
 
-#[derive(Hash, Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug)]
 pub struct SPR {
     eflags: u32,
     eip: u32,
 }
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fmt;
 
 pub struct Emulator {
-    reg_file: HashMap<GPR, u32>,
+    reg_file: BTreeMap<GPR, u32>,
     sp_reg: SPR,
     memory: Vec<u8>,
 }
@@ -36,7 +36,7 @@ impl Emulator {
     pub fn new(size: usize, eip_value: u32, esp_value: u32) -> Self {
         assert!(size > 0);
 
-        let reg_file = HashMap::from([
+        let reg_file = BTreeMap::from([
             (GPR::EAX, 0x0),
             (GPR::EBX, 0x0),
             (GPR::ECX, 0x0),
