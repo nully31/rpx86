@@ -57,13 +57,6 @@ pub fn add_rm32_r32(emu: &mut Emulator) {
     modrm.set_rm32(emu, r32 + rm32);
 }
 
-pub fn sub_rm32_imm8(emu: &mut Emulator, modrm: &ModRM) {
-    let rm32 = modrm.get_rm32(emu);
-    let imm8 = emu.get_signed_code8(0);
-    emu.inc_eip(1);
-    modrm.set_rm32(emu, rm32 - imm8 as u32);
-}
-
 pub fn code_83(emu: &mut Emulator) {
     emu.inc_eip(1);
     let mut modrm = ModRM::new(emu);
@@ -75,16 +68,24 @@ pub fn code_83(emu: &mut Emulator) {
     }
 }
 
-pub fn inc_rm32(emu: &mut Emulator, modrm: &ModRM) {
-    modrm.set_rm32(emu, modrm.get_rm32(emu) + 1);
+pub fn sub_rm32_imm8(emu: &mut Emulator, modrm: &ModRM) {
+    let rm32 = modrm.get_rm32(emu);
+    let imm8 = emu.get_signed_code8(0);
+    emu.inc_eip(1);
+    modrm.set_rm32(emu, rm32 - imm8 as u32);
 }
 
 pub fn code_ff(emu: &mut Emulator) {
     emu.inc_eip(1);
-    let modrm = ModRM::new(emu);
+    let mut modrm = ModRM::new(emu);
+    modrm.parse_modrm(emu);
 
     match modrm.get_opcode() {
         0b000 => inc_rm32(emu, &modrm),
         _ => panic!("Not implemented: code FF , {:#x?}", modrm),
     }
+}
+
+pub fn inc_rm32(emu: &mut Emulator, modrm: &ModRM) {
+    modrm.set_rm32(emu, modrm.get_rm32(emu) + 1);
 }

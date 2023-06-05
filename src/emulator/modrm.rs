@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 //
 // ModR/M
 //
@@ -21,11 +19,15 @@ pub struct ModRM {
 }
 
 impl ModRM {
-    pub fn new() -> ModRM {
+    pub fn new(emu: &mut Emulator) -> ModRM {
+        let code = emu.get_code8(0);
+
+        emu.inc_eip(1);
+
         ModRM {
-            r#mod: 0x0,
-            reg_bit: 0x0,
-            rm: 0x0,
+            r#mod: (code & 0b11000000) >> 6,
+            reg_bit: (code & 0b00111000) >> 3,
+            rm: code & 0b00000111,
             sib: 0x0,
             disp: Disp {
                 disp8: None,
@@ -86,14 +88,45 @@ impl ModRM {
         self.disp.disp32 = Some(disp);
     }
 
+    pub fn get_r32(&self, emu: &Emulator) -> u32 {
+        *emu.get_gpr_value(emu.get_gpr_id(self.get_reg_index().into()).unwrap_or_else(|| {
+            panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
+        }))
+    }
+
+    pub fn get_rm32(&self, emu: &Emulator) -> u32 {
+        match self.get_mod() {
+            0b11 => *emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into()).unwrap_or_else(|| {
+                panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
+            })),
+            _ => {
+                emu.get_memory32(self.calc_memory_address(emu) as u32)
+            }
+        }
+    }
+
+    pub fn set_r32(&self, emu: &mut Emulator, new_value: u32) {
+        let reg = *emu.get_gpr_id(self.get_reg_index().into()).unwrap_or_else(|| {
+            panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
+        });
+        emu.set_gpr(&reg, new_value);
+    }
+
+    pub fn set_rm32(&self, emu: &mut Emulator, value: u32) {
+        match self.get_mod() {
+            0b11 => {
+                let reg = *emu.get_gpr_id(self.get_rm().into()).unwrap_or_else(|| {
+                    panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
+                });
+                emu.set_gpr(&reg, value);
+            },
+            _ => {
+                emu.set_memory32(self.calc_memory_address(emu) as u32, value);
+            }
+        }
+    }
+
     pub fn parse_modrm(&mut self, emu: &mut Emulator) {
-        let code = emu.get_code8(0);
-        self.set_mod((code & 0b11000000) >> 6);
-        self.set_regbit((code & 0b00111000) >> 3);
-        self.set_rm(code & 0b00000111);
-
-        emu.inc_eip(1);
-
         if self.get_mod() != 0b11 && self.get_rm() == 0b11 {
             self.set_sib(emu.get_code8(0));
             emu.inc_eip(1);
@@ -108,31 +141,17 @@ impl ModRM {
         }
     }
 
-    pub fn set_rm32(&mut self, emu: &mut Emulator, value: u32) {
-        match self.get_mod() {
-            0b11 => {
-                let reg = *emu.get_gpr_id(self.get_rm().into()).unwrap_or_else(|| {
-                    panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
-                });
-                emu.set_gpr(&reg, value);
-            },
-            _ => {
-                emu.set_memory32(self.calc_memory_address(emu) as u32, value);
-            }
-        }
-    }
-
     pub fn calc_memory_address(&self, emu: &Emulator) -> i32 {
         match self.get_mod() {
             0b00 => {
                 match self.get_rm() {
-                    0b011 => {
+                    0b100 => {
                         // SIB
                         panic!("Not implemented: {:#x?}", self);
                     },
                     0b101 => {
                         self.get_disp32().unwrap_or_else(|| {
-                            panic!("Displacement not found: {:?}", self);
+                            panic!("disp32 not found: {:?}", self);
                         }) as i32
                     },
                     _ => {
@@ -154,9 +173,9 @@ impl ModRM {
                             .unwrap_or_else(|| {
                                 panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
                             })) as i32
-                            + self.get_disp8().unwrap_or_else(|| {
-                                panic!("Displacement not found: {:?}", self);
-                            }) as i32
+                        + self.get_disp8().unwrap_or_else(|| {
+                            panic!("disp8 not found: {:#x?}", self);
+                        }) as i32
                     },
                 }
             },
@@ -171,6 +190,9 @@ impl ModRM {
                             .unwrap_or_else(|| {
                                 panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
                             })) as i32
+                        + self.get_disp32().unwrap_or_else(|| {
+                            panic!("disp32 not found: {:?}", self);
+                        }) as i32
                     },
                 }
             }
