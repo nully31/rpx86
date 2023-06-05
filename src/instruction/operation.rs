@@ -2,6 +2,7 @@
 // Instructions
 //
 use super::*;
+use crate::emulator::GPR;
 use crate::emulator::modrm::ModRM;
 
 
@@ -88,4 +89,32 @@ pub fn code_ff(emu: &mut Emulator) {
 
 pub fn inc_rm32(emu: &mut Emulator, modrm: &ModRM) {
     modrm.set_rm32(emu, modrm.get_rm32(emu) + 1);
+}
+
+pub fn push_r32(emu: &mut Emulator) {
+    let reg = emu.get_code8(0) - 0x50;
+    let value = *emu.get_gpr_value(emu.get_gpr_id(reg.into()).unwrap());
+    push32(emu, value);
+    emu.inc_eip(1);
+}
+
+pub fn push32(emu: &mut Emulator, value: u32) {
+    let address = *emu.get_gpr_value(&GPR::ESP) - 4;
+    emu.set_gpr(&GPR::ESP, address);
+    emu.set_memory32(address, value);
+}
+
+pub fn pop_r32(emu: &mut Emulator) {
+    let reg = emu.get_code8(0) - 0x58;
+    let reg = *emu.get_gpr_id(reg.into()).unwrap();
+    let popped = pop32(emu);
+    emu.set_gpr(&reg, popped);
+    emu.inc_eip(1);
+}
+
+pub fn pop32(emu: &mut Emulator) -> u32 {
+    let address = *emu.get_gpr_value(&GPR::ESP);
+    let ret = emu.get_memory32(address);
+    emu.set_gpr(&GPR::ESP, address + 4);
+    ret
 }
