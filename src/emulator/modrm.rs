@@ -16,7 +16,6 @@ pub struct ModRM {
     r#mod: u8,
     reg_bit: u8,
     rm: u8,
-
     sib: u8,
     disp: Disp,
 }
@@ -110,56 +109,74 @@ impl ModRM {
     }
 
     pub fn set_rm32(&mut self, emu: &mut Emulator, value: u32) {
-        if self.get_mod() == 0b11 {
-            let reg = *emu.get_gpr_id(self.get_rm().into()).unwrap_or_else(|| {
-                panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
-            });
-            emu.set_gpr(&reg, value);
-        } else {
-            emu.set_memory32(self.calc_memory_address(emu) as u32, value);
+        match self.get_mod() {
+            0b11 => {
+                let reg = *emu.get_gpr_id(self.get_rm().into()).unwrap_or_else(|| {
+                    panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
+                });
+                emu.set_gpr(&reg, value);
+            },
+            _ => {
+                emu.set_memory32(self.calc_memory_address(emu) as u32, value);
+            }
         }
     }
 
     pub fn calc_memory_address(&self, emu: &Emulator) -> i32 {
-        if self.get_mod() == 0b00 {
-            if self.get_rm() == 0b11 {
-                // SIB
-                panic!("Not implemented: {:#x?}", self);
-            } else if self.get_rm() == 0b101 {
-                self.get_disp32().unwrap_or_else(|| {
-                    panic!("Displacement not found: {:?}", self);
-                }) as i32
-            } else {
-                *emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into())
-                    .unwrap_or_else(|| {
-                        panic!("Could not find the register specified by Mod/RM: {:#x?}", self)
-                    })) as i32
+        match self.get_mod() {
+            0b00 => {
+                match self.get_rm() {
+                    0b011 => {
+                        // SIB
+                        panic!("Not implemented: {:#x?}", self);
+                    },
+                    0b101 => {
+                        self.get_disp32().unwrap_or_else(|| {
+                            panic!("Displacement not found: {:?}", self);
+                        }) as i32
+                    },
+                    _ => {
+                        *emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into())
+                            .unwrap_or_else(|| {
+                                panic!("Could not find the register specified by Mod/RM: {:#x?}", self)
+                            })) as i32
+                    },
+                }
+            },
+            0b01 => {
+                match self.get_rm() {
+                    0b100 => {
+                        // SIB
+                        panic!("Not implemented: {:#x?}", self);
+                    },
+                    _ => {
+                        *emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into())
+                            .unwrap_or_else(|| {
+                                panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
+                            })) as i32
+                            + self.get_disp8().unwrap_or_else(|| {
+                                panic!("Displacement not found: {:?}", self);
+                            }) as i32
+                    },
+                }
+            },
+            0b10 => {
+                match self.get_rm() {
+                    0b100 => {
+                        // SIB
+                        panic!("Not implemented: {:#x?}", self);
+                    }, 
+                    _ => {
+                        *emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into())
+                            .unwrap_or_else(|| {
+                                panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
+                            })) as i32
+                    },
+                }
             }
-        } else if self.get_mod() == 0b01 {
-            if self.get_rm() == 0b100 {
-                // SIB
+            _ => {
                 panic!("Not implemented: {:#x?}", self);
-            } else {
-                *emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into())
-                    .unwrap_or_else(|| {
-                        panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
-                    })) as i32
-                    + self.get_disp8().unwrap_or_else(|| {
-                        panic!("Displacement not found: {:?}", self);
-                    }) as i32
             }
-        } else if self.get_mod() == 0b10 {
-            if self.get_rm() == 0b100 {
-                // SIB
-                panic!("Not implemented: {:#x?}", self);
-            } else {
-                *emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into())
-                    .unwrap_or_else(|| {
-                        panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
-                    })) as i32
-            }
-        } else {
-            panic!("Not implemented: {:#x?}", self);
         }
     }
 }
