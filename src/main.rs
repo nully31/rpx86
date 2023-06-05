@@ -12,7 +12,7 @@ pub mod emulator;
 pub mod instruction;
 
 const MEM_SIZE: usize = 0xffff;
-const INST_SIZE: usize = 0xff;
+const INST_SIZE: usize = 0xff + 1;
 const ORG: u32 = 0x7c00;
 
 fn main() {
