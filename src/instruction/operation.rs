@@ -2,7 +2,7 @@
 // Instructions
 //
 use super::*;
-use crate::emulator::{modrm::ModRM, self};
+use crate::emulator::modrm::ModRM;
 
 
 pub fn mov_r32_imm32(emu: &mut Emulator) {
