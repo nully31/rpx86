@@ -88,7 +88,9 @@ impl Emulator {
     }
 
     pub fn get_gpr_value(&self, reg: &GPR) -> &u32 {
-        self.reg_file.get(reg).unwrap()
+        self.reg_file.get(reg).unwrap_or_else(|| {
+            panic!("Could not find the register specified by: {:#x?}", reg);
+        })
     }
 
     pub fn set_gpr(&mut self, reg: &GPR, new_value: u32) {
@@ -113,8 +115,8 @@ impl Emulator {
         self.sp_reg.eip = new_value;
     }
 
-    pub fn inc_eip(&mut self, incrementor: u32) {
-        self.sp_reg.eip += incrementor;
+    pub fn inc_eip(&mut self, increment_by: u32) {
+        self.sp_reg.eip += increment_by;
     }
 
     pub fn load_bin(&mut self, binary: Vec<u8>, address: u32) {
@@ -143,6 +145,18 @@ impl Emulator {
         let mut ret: i32 = 0x0;
         for i in 0..4 {
             ret |= (self.get_code8(i + index) as i32) << (i * 8);
+        }
+        ret
+    }
+
+    pub fn get_memory8(&self, address: u32) -> u8 {
+        self.memory[address as usize]
+    }
+
+    pub fn get_memory32(&self, address: u32) -> u32 {
+        let mut ret: u32 = 0x0;
+        for i in 0..4 {
+            ret |= (self.get_memory8(address + i) as u32) << (i * 8);
         }
         ret
     }
