@@ -1,3 +1,5 @@
+use std::result;
+
 //
 // Instructions
 //
@@ -66,15 +68,9 @@ pub fn code_83(emu: &mut Emulator) {
     match modrm.get_opcode() {
         0b000 => add_rm32_imm8(emu, &modrm),
         0b101 => sub_rm32_imm8(emu, &modrm),
+        0b111 => cmp_rm32_imm8(emu, &modrm),
         _ => panic!("Not implemented: code 83 , {:#x?}", modrm),
     }
-}
-
-pub fn sub_rm32_imm8(emu: &mut Emulator, modrm: &ModRM) {
-    let rm32 = modrm.get_rm32(emu);
-    let imm8 = emu.get_signed_code8(0);
-    emu.inc_eip(1);
-    modrm.set_rm32(emu, rm32 - imm8 as u32);
 }
 
 pub fn code_ff(emu: &mut Emulator) {
@@ -156,4 +152,31 @@ pub fn add_rm32_imm8(emu: &mut Emulator, modrm: &ModRM) {
     let imm8 = emu.get_signed_code8(0) as i32;
     emu.inc_eip(1);
     modrm.set_rm32(emu, rm32 + imm8 as u32);
+}
+
+pub fn cmp_r32_rm32(emu: &mut Emulator) {
+    emu.inc_eip(1);
+    let mut modrm = ModRM::new(emu);
+    modrm.parse_modrm(emu);
+    let r32 = modrm.get_r32(emu);
+    let rm32 = modrm.get_rm32(emu);
+    let result = r32 as u64 - rm32 as u64;
+    emu.update_eflags_sub(r32, rm32, result);
+}
+
+pub fn cmp_rm32_imm8(emu: &mut Emulator, modrm: &ModRM) {
+    let rm32 = modrm.get_rm32(emu);
+    let imm8 = emu.get_signed_code8(0) as i32;
+    emu.inc_eip(1);
+    let result = rm32 as u64 - imm8 as u64;
+    emu.update_eflags_sub(rm32, imm8 as u32, result);
+}
+
+pub fn sub_rm32_imm8(emu: &mut Emulator, modrm: &ModRM) {
+    let rm32 = modrm.get_rm32(emu);
+    let imm8 = emu.get_signed_code8(0) as i32;
+    emu.inc_eip(1);
+    let result = rm32 as u64 - imm8 as u64;
+    modrm.set_rm32(emu, result as u32);
+    emu.update_eflags_sub(rm32, imm8 as u32, result);
 }

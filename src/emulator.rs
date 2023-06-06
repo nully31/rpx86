@@ -5,6 +5,11 @@ use crate::instruction::InstructionVector;
 
 pub mod modrm;
 
+const CARRY_FLAG: u32 = 1;
+const ZERO_FLAG: u32 = 1 << 6;
+const SIGN_FLAG: u32 = 1 << 7;
+const OVERFLOW_FLAG: u32 = 1 << 11;
+
 #[derive(Ord, PartialOrd, Eq, PartialEq, Debug, Clone, Copy)]
 pub enum GPR {
     EAX = 0,
@@ -107,10 +112,6 @@ impl Emulator {
         self.sp_reg.eflags
     }
 
-    pub fn set_eflags(&mut self, new_value: u32) {
-        self.sp_reg.eflags = new_value;
-    }
-
     pub fn set_eip(&mut self, new_value: u32) {
         self.sp_reg.eip = new_value;
     }
@@ -119,6 +120,49 @@ impl Emulator {
         let mut eip = self.sp_reg.eip as i32;
         eip += increment_by;
         self.set_eip(eip as u32);
+    }
+
+    pub fn update_eflags_sub(&mut self, v1: u32, v2: u32, result: u64) {
+        let sign1 = v1 >> 31;
+        let sign2 = v2 >> 31;
+        let signr = (result >> 31) & 1;
+
+        self.set_carry(result >> 32);
+        self.set_zero(result == 0);
+        self.set_sign(signr);
+        self.set_overflow(sign1 != sign2 && sign1 as u64 != signr);
+    }
+
+    fn set_carry(&mut self, is_carry: u64) {
+        if is_carry != 0 {
+            self.sp_reg.eflags |= CARRY_FLAG;
+        } else {
+            self.sp_reg.eflags &= !CARRY_FLAG;
+        }
+    }
+
+    fn set_zero(&mut self, is_zero: bool) {
+        if is_zero {
+            self.sp_reg.eflags |= ZERO_FLAG;
+        } else {
+            self.sp_reg.eflags &= !ZERO_FLAG;
+        }
+    }
+
+    fn set_sign(&mut self, is_signed: u64) {
+        if is_signed != 0 {
+            self.sp_reg.eflags |= SIGN_FLAG;
+        } else {
+            self.sp_reg.eflags &= !SIGN_FLAG;
+        }
+    }
+
+    fn set_overflow(&mut self, is_overflow: bool) {
+        if is_overflow {
+            self.sp_reg.eflags |= OVERFLOW_FLAG;
+        } else {
+            self.sp_reg.eflags &= !OVERFLOW_FLAG;
+        }
     }
 
     pub fn load_bin(&mut self, binary: Vec<u8>, address: u32) {
