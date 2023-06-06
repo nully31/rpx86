@@ -32,7 +32,7 @@ impl InstructionVector {
         }
         instructions[0xC3] = Some(ret);
         instructions[0xC7] = Some(mov_rm32_imm32);
-        // instructions[0xC9] = Some(leave);
+        instructions[0xC9] = Some(leave);
         instructions[0xE8] = Some(call_rel32);
         instructions[0xE9] = Some(near_jump);
         instructions[0xEB] = Some(short_jump);

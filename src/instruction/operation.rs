@@ -129,3 +129,11 @@ pub fn ret(emu: &mut Emulator) {
     let popped = pop32(emu);
     emu.set_eip(popped);
 }
+
+pub fn leave(emu: &mut Emulator) {
+    let ebp = emu.get_gpr_value(&GPR::EBP);
+    emu.set_gpr(&GPR::ESP, *ebp);
+    let popped = pop32(emu);
+    emu.set_gpr(&GPR::EBP, popped);
+    emu.inc_eip(1);
+}
