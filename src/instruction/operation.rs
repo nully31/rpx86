@@ -64,6 +64,7 @@ pub fn code_83(emu: &mut Emulator) {
     modrm.parse_modrm(emu);
 
     match modrm.get_opcode() {
+        0b000 => add_rm32_imm8(emu, &modrm),
         0b101 => sub_rm32_imm8(emu, &modrm),
         _ => panic!("Not implemented: code 83 , {:#x?}", modrm),
     }
@@ -122,7 +123,7 @@ pub fn pop32(emu: &mut Emulator) -> u32 {
 pub fn call_rel32(emu: &mut Emulator) {
     let diff = emu.get_signed_code32(1);
     push32(emu, emu.get_eip() + 5);
-    emu.inc_eip(diff as u32 + 5);
+    emu.inc_eip(diff + 5);
 }
 
 pub fn ret(emu: &mut Emulator) {
@@ -136,4 +137,23 @@ pub fn leave(emu: &mut Emulator) {
     let popped = pop32(emu);
     emu.set_gpr(&GPR::EBP, popped);
     emu.inc_eip(1);
+}
+
+pub fn push_imm8(emu: &mut Emulator) {
+    let value = emu.get_code8(1);
+    push32(emu, value as u32);
+    emu.inc_eip(2);
+}
+
+pub fn push_imm32(emu: &mut Emulator) {
+    let value = emu.get_code32(1);
+    push32(emu, value);
+    emu.inc_eip(5);
+}
+
+pub fn add_rm32_imm8(emu: &mut Emulator, modrm: &ModRM) {
+    let rm32 = modrm.get_rm32(emu);
+    let imm8 = emu.get_signed_code8(0) as i32;
+    emu.inc_eip(1);
+    modrm.set_rm32(emu, rm32 + imm8 as u32);
 }

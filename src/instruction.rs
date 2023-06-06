@@ -22,8 +22,8 @@ impl InstructionVector {
         for i in 0..8 {
             instructions[0x58 + i] = Some(pop_r32);
         }
-        // instructions[0x68] = Some(push_imm32);
-        // instructions[0x6A] = Some(push_imm8);
+        instructions[0x68] = Some(push_imm32);
+        instructions[0x6A] = Some(push_imm8);
         instructions[0x83] = Some(code_83);
         instructions[0x89] = Some(mov_rm32_r32);
         instructions[0x8B] = Some(mov_r32_rm32);
