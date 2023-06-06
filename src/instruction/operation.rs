@@ -118,3 +118,14 @@ pub fn pop32(emu: &mut Emulator) -> u32 {
     emu.set_gpr(&GPR::ESP, address + 4);
     ret
 }
+
+pub fn call_rel32(emu: &mut Emulator) {
+    let diff = emu.get_signed_code32(1);
+    push32(emu, emu.get_eip() + 5);
+    emu.inc_eip(diff as u32 + 5);
+}
+
+pub fn ret(emu: &mut Emulator) {
+    let popped = pop32(emu);
+    emu.set_eip(popped);
+}
