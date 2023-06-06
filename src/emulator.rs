@@ -115,8 +115,10 @@ impl Emulator {
         self.sp_reg.eip = new_value;
     }
 
-    pub fn inc_eip(&mut self, increment_by: u32) {
-        self.sp_reg.eip += increment_by;
+    pub fn inc_eip(&mut self, increment_by: i32) {
+        let mut eip = self.sp_reg.eip as i32;
+        eip += increment_by;
+        self.set_eip(eip as u32);
     }
 
     pub fn load_bin(&mut self, binary: Vec<u8>, address: u32) {
