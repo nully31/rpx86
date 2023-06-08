@@ -16,6 +16,7 @@ impl InstructionVector {
         let mut instructions: Vec<Option<InstructionPtr>> = vec![None; size];
 
         instructions[0x01] = Some(add_rm32_r32);
+        instructions[0x3B] = Some(cmp_r32_rm32);
         for i in 0..8 {
             instructions[0x50 + i] = Some(push_r32);
         }

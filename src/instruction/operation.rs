@@ -158,8 +158,8 @@ pub fn cmp_r32_rm32(emu: &mut Emulator) {
     modrm.parse_modrm(emu);
     let r32 = modrm.get_r32(emu);
     let rm32 = modrm.get_rm32(emu);
-    let result = r32 as u64 - rm32 as u64;
-    emu.update_eflags_sub(r32, rm32, result);
+    let result = r32 as i64 - rm32 as i64;
+    emu.update_eflags_sub(r32, rm32, result as u64);
 }
 
 pub fn cmp_rm32_imm8(emu: &mut Emulator, modrm: &ModRM) {
