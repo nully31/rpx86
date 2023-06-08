@@ -178,3 +178,93 @@ pub fn sub_rm32_imm8(emu: &mut Emulator, modrm: &ModRM) {
     modrm.set_rm32(emu, result as u32);
     emu.update_eflags_sub(rm32, imm8 as u32, result);
 }
+
+pub fn jc(emu: &mut Emulator) {
+    let diff = if emu.is_carry() {
+        emu.get_signed_code8(1)
+    } else {
+        0
+    };
+    emu.inc_eip(diff as i32 + 2);
+}
+
+pub fn jnc(emu: &mut Emulator) {
+    let diff = if emu.is_carry() {
+        0
+    } else {
+        emu.get_signed_code8(1)
+    };
+    emu.inc_eip(diff as i32 + 2);
+}
+
+pub fn jz(emu: &mut Emulator) {
+    let diff = if emu.is_zero() {
+        emu.get_signed_code8(1)
+    } else {
+        0
+    };
+    emu.inc_eip(diff as i32 + 2);
+}
+
+pub fn jnz(emu: &mut Emulator) {
+    let diff = if emu.is_zero() {
+        0
+    } else {
+        emu.get_signed_code8(1)
+    };
+    emu.inc_eip(diff as i32 + 2);
+}
+
+pub fn js(emu: &mut Emulator) {
+    let diff = if emu.is_signed() {
+        emu.get_signed_code8(1)
+    } else {
+        0
+    };
+    emu.inc_eip(diff as i32 + 2);
+}
+
+pub fn jns(emu: &mut Emulator) {
+    let diff = if emu.is_signed() {
+        0
+    } else {
+        emu.get_signed_code8(1)
+    };
+    emu.inc_eip(diff as i32 + 2);
+}
+
+pub fn jo(emu: &mut Emulator) {
+    let diff = if emu.is_overflow() {
+        emu.get_signed_code8(1)
+    } else {
+        0
+    };
+    emu.inc_eip(diff as i32 + 2);
+}
+
+pub fn jno(emu: &mut Emulator) {
+    let diff = if emu.is_overflow() {
+        0
+    } else {
+        emu.get_signed_code8(1)
+    };
+    emu.inc_eip(diff as i32 + 2);
+}
+
+pub fn jl(emu: &mut Emulator) {
+    let diff = if emu.is_signed() != emu.is_overflow() {
+        emu.get_signed_code8(1)
+    } else {
+        0
+    };
+    emu.inc_eip(diff as i32 + 2);
+}
+
+pub fn jle(emu: &mut Emulator) {
+    let diff = if emu.is_zero() || (emu.is_signed() != emu.is_overflow()) {
+        emu.get_signed_code8(1)
+    } else {
+        0
+    };
+    emu.inc_eip(diff as i32 + 2);
+}

@@ -108,10 +108,6 @@ impl Emulator {
         self.sp_reg.eip
     }
 
-    pub fn get_eflags(&self) -> u32 {
-        self.sp_reg.eflags
-    }
-
     pub fn set_eip(&mut self, new_value: u32) {
         self.sp_reg.eip = new_value;
     }
@@ -120,6 +116,26 @@ impl Emulator {
         let mut eip = self.sp_reg.eip as i32;
         eip += increment_by;
         self.set_eip(eip as u32);
+    }
+
+    pub fn get_eflags(&self) -> u32 {
+        self.sp_reg.eflags
+    }
+
+    pub fn is_carry(&self) -> bool {
+        self.get_eflags() & CARRY_FLAG != 0
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.get_eflags() & ZERO_FLAG != 0
+    }
+
+    pub fn is_signed(&self) -> bool {
+        self.get_eflags() & SIGN_FLAG != 0
+    }
+
+    pub fn is_overflow(&self) -> bool {
+        self.get_eflags() & OVERFLOW_FLAG != 0
     }
 
     pub fn update_eflags_sub(&mut self, v1: u32, v2: u32, result: u64) {
