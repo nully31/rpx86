@@ -9,7 +9,7 @@
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceRoot}/target/debug/rpx86.exe",
-            "args": ["${workspaceRoot}/bin/arg-test/test.bin"],
+            "args": ["${workspaceRoot}/bin/while-stmt/test.bin"],
             "cwd": "${workspaceRoot}",
         }
     ]
