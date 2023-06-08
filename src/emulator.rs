@@ -92,8 +92,8 @@ impl Emulator {
         }
     }
 
-    pub fn get_gpr_value(&self, reg: &GPR) -> &u32 {
-        self.reg_file.get(reg).unwrap_or_else(|| {
+    pub fn get_gpr_value(&self, reg: &GPR) -> u32 {
+        *self.reg_file.get(reg).unwrap_or_else(|| {
             panic!("Could not find the register specified by: {:#x?}", reg);
         })
     }

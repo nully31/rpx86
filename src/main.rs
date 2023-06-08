@@ -49,6 +49,6 @@ mod tests {
         let instructions = InstructionVector::new(INST_SIZE);
         emu.run(instructions);
         // emu.dump();
-        assert_eq!(*emu.get_gpr_value(&emulator::GPR::EAX), 41);
+        assert_eq!(emu.get_gpr_value(&emulator::GPR::EAX), 41);
     }
 }

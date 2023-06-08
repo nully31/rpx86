@@ -88,13 +88,13 @@ pub fn inc_rm32(emu: &mut Emulator, modrm: &ModRM) {
 
 pub fn push_r32(emu: &mut Emulator) {
     let reg = emu.get_code8(0) - 0x50;
-    let value = *emu.get_gpr_value(emu.get_gpr_id(reg.into()).unwrap());
+    let value = emu.get_gpr_value(emu.get_gpr_id(reg.into()).unwrap());
     push32(emu, value);
     emu.inc_eip(1);
 }
 
 fn push32(emu: &mut Emulator, value: u32) {
-    let address = *emu.get_gpr_value(&GPR::ESP) - 4;
+    let address = emu.get_gpr_value(&GPR::ESP) - 4;
     emu.set_gpr(&GPR::ESP, address);
     emu.set_memory32(address, value);
 }
@@ -108,7 +108,7 @@ pub fn pop_r32(emu: &mut Emulator) {
 }
 
 fn pop32(emu: &mut Emulator) -> u32 {
-    let address = *emu.get_gpr_value(&GPR::ESP);
+    let address = emu.get_gpr_value(&GPR::ESP);
     let ret = emu.get_memory32(address);
     emu.set_gpr(&GPR::ESP, address + 4);
     ret
@@ -127,7 +127,7 @@ pub fn ret(emu: &mut Emulator) {
 
 pub fn leave(emu: &mut Emulator) {
     let ebp = emu.get_gpr_value(&GPR::EBP);
-    emu.set_gpr(&GPR::ESP, *ebp);
+    emu.set_gpr(&GPR::ESP, ebp);
     let popped = pop32(emu);
     emu.set_gpr(&GPR::EBP, popped);
     emu.inc_eip(1);

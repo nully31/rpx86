@@ -89,14 +89,14 @@ impl ModRM {
     }
 
     pub fn get_r32(&self, emu: &Emulator) -> u32 {
-        *emu.get_gpr_value(emu.get_gpr_id(self.get_reg_index().into()).unwrap_or_else(|| {
+        emu.get_gpr_value(emu.get_gpr_id(self.get_reg_index().into()).unwrap_or_else(|| {
             panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
         }))
     }
 
     pub fn get_rm32(&self, emu: &Emulator) -> u32 {
         match self.get_mod() {
-            0b11 => *emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into()).unwrap_or_else(|| {
+            0b11 => emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into()).unwrap_or_else(|| {
                 panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
             })),
             _ => {
@@ -155,7 +155,7 @@ impl ModRM {
                         }) as i32
                     },
                     _ => {
-                        *emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into())
+                        emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into())
                             .unwrap_or_else(|| {
                                 panic!("Could not find the register specified by Mod/RM: {:#x?}", self)
                             })) as i32
@@ -169,7 +169,7 @@ impl ModRM {
                         panic!("Not implemented: {:#x?}", self);
                     },
                     _ => {
-                        *emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into())
+                        emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into())
                             .unwrap_or_else(|| {
                                 panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
                             })) as i32
@@ -186,7 +186,7 @@ impl ModRM {
                         panic!("Not implemented: {:#x?}", self);
                     }, 
                     _ => {
-                        *emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into())
+                        emu.get_gpr_value(emu.get_gpr_id(self.get_rm().into())
                             .unwrap_or_else(|| {
                                 panic!("Could not find the register specified by Mod/RM: {:#x?}", self);
                             })) as i32
