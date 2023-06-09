@@ -22,6 +22,19 @@ pub enum GPR {
     EDI = 7,
 }
 
+#[derive(Ord, PartialOrd, Eq, PartialEq, Debug, Clone, Copy)]
+pub enum GPR8 {
+    AL = 0,
+    CL = 1,
+    DL = 2,
+    BL = 3,
+
+    AH = 4,
+    CH = 5,
+    DH = 6,
+    BH = 7,
+}
+
 #[derive(Eq, PartialEq, Debug)]
 pub struct SPR {
     eflags: u32,
@@ -102,6 +115,62 @@ impl Emulator {
         self.reg_file.entry(*reg).and_modify(|reg_value| {
             *reg_value = new_value;
         });
+    }
+
+    pub fn get_gpr8_id(&self, reg: u32) -> Option<(&GPR8, &GPR)> {
+        match reg {
+            v if v == GPR8::AL as u32 => {
+                Some((&GPR8::AL, &GPR::EAX))
+            }
+            v if v == GPR8::AH as u32 => {
+                Some((&GPR8::AH, &GPR::EAX))
+            }
+            v if v == GPR8::CL as u32 => {
+                Some((&GPR8::CL, &GPR::ECX))
+            }
+            v if v == GPR8::CH as u32 => {
+                Some((&GPR8::CH, &GPR::ECX))
+            }
+            v if v == GPR8::DL as u32 => {
+                Some((&GPR8::DL, &GPR::EDX))
+            }
+            v if v == GPR8::DH as u32 => {
+                Some((&GPR8::DH, &GPR::EDX))
+            }
+            v if v == GPR8::BL as u32 => {
+                Some((&GPR8::BL, &GPR::EBX))
+            }
+            v if v == GPR8::BH as u32 => {
+                Some((&GPR8::BH, &GPR::EBX))
+            }
+            _ => {
+                None
+            }
+        }
+    }
+
+
+    pub fn get_gpr8_value(&self, reg: (&GPR8, &GPR)) -> u8 {
+        let (_reg8, reg32) = reg;
+        let mut ret = *self.reg_file.get(reg32).unwrap_or_else(|| {
+            panic!("Could not find the register specified by: {:#x?}", reg);
+        });
+        if (*reg32 as u32) < 4 {
+            ret &= 0xff;
+        } else {
+            ret = (ret >> 8) & 0xff;
+        }
+        ret as u8
+    }
+
+    pub fn set_gpr8_value(&mut self, reg: (&GPR8, &GPR), new_value: u8) {
+        let (_reg8, reg32)  = reg;
+        let value = self.get_gpr_value(reg32);
+        if (*reg32 as u32) < 4 {
+            self.set_gpr(reg32, value & 0xffffff00 | new_value as u32);
+        } else {
+            self.set_gpr(reg32, value & 0xffff00ff | new_value as u32);
+        }
     }
 
     pub fn get_eip(&self) -> u32 {
