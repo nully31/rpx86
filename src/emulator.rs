@@ -163,7 +163,7 @@ impl Emulator {
         ret as u8
     }
 
-    pub fn set_gpr8_value(&mut self, reg: (&GPR8, &GPR), new_value: u8) {
+    pub fn set_gpr8(&mut self, reg: (&GPR8, &GPR), new_value: u8) {
         let (_reg8, reg32)  = reg;
         let value = self.get_gpr_value(reg32);
         if (*reg32 as u32) < 4 {
