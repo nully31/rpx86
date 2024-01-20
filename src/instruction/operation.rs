@@ -2,7 +2,7 @@
 // Instructions
 //
 use super::*;
-use crate::emulator::GPR;
+use crate::emulator::{GPR, GPR8};
 use crate::emulator::modrm::ModRM;
 
 
@@ -267,4 +267,18 @@ pub fn jle(emu: &mut Emulator) {
         0
     };
     emu.inc_eip(diff as i32 + 2);
+}
+
+pub fn in_al_dx(emu: &mut Emulator) {
+    let address: u16 = (emu.get_gpr_value(&GPR::EDX) & 0xffff) as u16;
+    let value: u8 = io::in8(address);
+    emu.set_gpr8(&GPR8::AL, value);
+    emu.inc_eip(1);
+}
+
+pub fn out_dx_al(emu: &mut Emulator) {
+    let address = (emu.get_gpr_value(&GPR::EDX) & 0xffff) as u16;
+    let value = emu.get_gpr8_value(&GPR8::AL);
+    io::out8(address, value);
+    emu.inc_eip(1);
 }

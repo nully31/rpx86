@@ -5,6 +5,7 @@ use crate::emulator::Emulator;
 use crate::instruction::operation::*;
 
 pub mod operation;
+pub mod io;
 
 type InstructionPtr = fn(&mut Emulator);
 
@@ -47,6 +48,8 @@ impl InstructionVector {
         instructions[0xE8] = Some(call_rel32);
         instructions[0xE9] = Some(near_jump);
         instructions[0xEB] = Some(short_jump);
+        instructions[0xEC] = Some(in_al_dx);
+        instructions[0xEE] = Some(out_dx_al);
         instructions[0xFF] = Some(code_ff);
 
         InstructionVector(instructions)

@@ -149,9 +149,41 @@ impl Emulator {
         }
     }
 
+    pub fn convert_gpr8_id(&self, reg: GPR8) -> Option<(&GPR8, &GPR)> {
+        match reg {
+            v if v == GPR8::AL => {
+                Some((&GPR8::AL, &GPR::EAX))
+            }
+            v if v == GPR8::AH => {
+                Some((&GPR8::AH, &GPR::EAX))
+            }
+            v if v == GPR8::CL => {
+                Some((&GPR8::CL, &GPR::ECX))
+            }
+            v if v == GPR8::CH => {
+                Some((&GPR8::CH, &GPR::ECX))
+            }
+            v if v == GPR8::DL => {
+                Some((&GPR8::DL, &GPR::EDX))
+            }
+            v if v == GPR8::DH => {
+                Some((&GPR8::DH, &GPR::EDX))
+            }
+            v if v == GPR8::BL => {
+                Some((&GPR8::BL, &GPR::EBX))
+            }
+            v if v == GPR8::BH => {
+                Some((&GPR8::BH, &GPR::EBX))
+            }
+            _ => {
+                None
+            }
+        }
+    }
 
-    pub fn get_gpr8_value(&self, reg: (&GPR8, &GPR)) -> u8 {
-        let (_reg8, reg32) = reg;
+    pub fn get_gpr8_value(&self, reg: &GPR8) -> u8 {
+        let reg = self.convert_gpr8_id(*reg);
+        let (_reg8, reg32) = reg.unwrap();
         let mut ret = *self.reg_file.get(reg32).unwrap_or_else(|| {
             panic!("Could not find the register specified by: {:#x?}", reg);
         });
@@ -163,14 +195,18 @@ impl Emulator {
         ret as u8
     }
 
-    pub fn set_gpr8(&mut self, reg: (&GPR8, &GPR), new_value: u8) {
-        let (_reg8, reg32)  = reg;
-        let value = self.get_gpr_value(reg32);
+    pub fn set_gpr8(&mut self, reg: &GPR8, new_value: u8) {
+        let reg = self.convert_gpr8_id(*reg);
+        let (_reg8, reg32) = reg.unwrap();
+        let mut value = self.get_gpr_value(reg32);
         if (*reg32 as u32) < 4 {
-            self.set_gpr(reg32, value & 0xffffff00 | new_value as u32);
+            value = value & 0xffffff00 | new_value as u32;
         } else {
-            self.set_gpr(reg32, value & 0xffff00ff | new_value as u32);
+            value = value & 0xffff00ff | new_value as u32;
         }
+        self.reg_file.entry(*reg32).and_modify(|reg_value| {
+            *reg_value = value;
+        });
     }
 
     pub fn get_eip(&self) -> u32 {
