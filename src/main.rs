@@ -41,7 +41,7 @@ mod tests {
     fn main_test() {
         let mut emu = Emulator::new(MEM_SIZE, 0x0000, ORG);
     
-        emu.load_bin(fs::read("helloworld.bin").unwrap_or_else(|err| {
+        emu.load_bin(fs::read("bin/helloworld.bin").unwrap_or_else(|err| {
             eprintln!("Could not load binary: {err}");
             process::exit(1);
         }), 0x0000);
