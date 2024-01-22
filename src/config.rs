@@ -9,7 +9,7 @@ pub struct Config {
 impl Config {
     pub fn build(args: &[String]) -> Result<Config, &'static str> {
         if args.len() < 2 {
-            return Err("not enough arguments, please specify the path to a binary file.");
+            return Err("Usage: rpx86 [bin]");
         }
 
         let file_path = args[1].clone();
@@ -29,7 +29,7 @@ mod tests {
     fn build_test() {
         let args = vec!["0".to_string()];
         let config = Config::build(&args);
-        assert_eq!(config.unwrap_err(), "not enough arguments, please specify the path to a binary file.");
+        assert_eq!(config.unwrap_err(), "Usage: rpx86 [bin]");
 
         let args = vec!["0".to_string(), "helloworld.bin".to_string()];
         let config = Config::build(&args);
